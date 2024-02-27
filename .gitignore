@@ -396,3 +396,7 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+cloud_scanner/ec2_instances.json
+cloud_scanner/fake_aws_resources_with_ips.json
+cloud_scanner/rds_instances.json
+cloud_scanner/s3_buckets.json

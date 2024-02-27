@@ -1,7 +1,7 @@
 import json
 import boto3
 import os
-from . import database_ops as db
+from .. import database_ops as db
 
 main_json = json.load(open("fake_aws_resources_with_ips.json"))
 
