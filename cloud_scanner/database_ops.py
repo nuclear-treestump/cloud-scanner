@@ -113,7 +113,7 @@ def batch_insert_ec2(
     cursor = conn.cursor()
     cursor.executemany(
         """
-        INSERT INTO ec2instances (group_id, group_name, ip_perms, description, public_ip, private_ip)
+        INSERT OR REPLACE INTO ec2instances (group_id, group_name, ip_perms, description, public_ip, private_ip)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
         [
@@ -145,7 +145,7 @@ def batch_insert_s3(
     cursor = conn.cursor()
     cursor.executemany(
         """
-        INSERT INTO s3buckets (name, creation_date, public_access, encryption, logging_enabled)
+        INSERT OR REPLACE INTO s3buckets (name, creation_date, public_access, encryption, logging_enabled)
         VALUES (?, ?, ?, ?, ?)
         """,
         [
@@ -176,7 +176,7 @@ def batch_insert_rds(
     cursor = conn.cursor()
     cursor.executemany(
         """
-        INSERT INTO rdsinstances (db_name, db_instance_type, db_software, public_access, encryption, db_portnumber, public_ip, private_ip)
+        INSERT OR REPLACE INTO rdsinstances (db_name, db_instance_type, db_software, public_access, encryption, db_portnumber, public_ip, private_ip)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         [
