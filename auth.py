@@ -5,7 +5,7 @@ Handles auth for boto3, and where needed, SSM requests.
 import botocore
 import boto3
 import os
-from .decorator import auto_log as autolog
+from .decorator import autolog
 
 
 @autolog(__name__)
