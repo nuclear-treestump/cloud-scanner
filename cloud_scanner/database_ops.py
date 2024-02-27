@@ -96,6 +96,18 @@ def setup_database(conn: Optional[sqlite3.Connection] = None) -> None:
         )
         """
     )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS rules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            resource_table TEXT,
+            condition_field TEXT,
+            condition value TEXT,
+            risk_score INT
+        )
+        """
+    )
     conn.commit()
 
 
