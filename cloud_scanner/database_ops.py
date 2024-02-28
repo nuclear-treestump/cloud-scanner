@@ -6,7 +6,7 @@ from decorator import autolog
 
 
 @autolog(__name__)
-def with_db_connection(db_path: str = "data.db") -> Callable:
+def with_db_connection(db_path: str = "../data.db") -> Callable:
     """
     Open new connection if not already supplied.
     """
