@@ -101,10 +101,12 @@ def setup_database(conn: Optional[sqlite3.Connection] = None) -> None:
         """
         CREATE TABLE IF NOT EXISTS rules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            rule_name TEXT,
             resource_table TEXT,
             condition_field TEXT,
-            condition value TEXT,
-            risk_score INT
+            condition_value TEXT,
+            risk_score INT,
+            remediation_steps TEXT
         )
         """
     )
@@ -206,3 +208,31 @@ def batch_insert_rds(
         ],
     )
     conn.commit()
+
+
+def fetch_entry_by_id(
+    item_id: int, table_name: str, conn: Optional[sqlite3.Connection] = None
+) -> Optional[sqlite3.Row]:
+    """
+    Get row from the database by ID.
+
+    Args:
+        item_id (int): The ID of the row to query for.
+        table_name (str): The table to pull from.
+        conn (sqlite3.Connection, optional): An existing
+        database connection. If not provided, a new connection
+        will be created.
+
+    Returns:
+        sqlite3.Row object
+    """
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT * FROM ? WHERE id = ?",
+        (table_name, item_id),
+    )
+    row = cursor.fetchone()
+
+    if row:
+        return row
+    return None
