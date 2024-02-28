@@ -1,3 +1,16 @@
+"""
+database_ops.py
+
+Handles the creation, reading, and writing of data into the SQLite DB
+
+Usage of the with_db_connection() decorator defines a default path to
+data.db (which can be overwritten) and simplifies db connection management.
+
+All queries are parameterized, and where possible, executemany is used to
+limit the number of transactions.
+
+"""
+
 import functools
 import json
 import sqlite3
@@ -14,12 +27,11 @@ def with_db_connection(db_path: str = "../data.db") -> Callable:
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper_decorator(*args: Any, **kwargs: Any) -> Any:
-            # Check if 'conn' is already supplied
+
             conn = kwargs.get("conn")
             if conn is not None and isinstance(conn, sqlite3.Connection):
                 return func(*args, **kwargs)
 
-            # Manage a new connection
             with sqlite3.connect(db_path) as conn:
                 kwargs["conn"] = conn
                 return func(*args, **kwargs)

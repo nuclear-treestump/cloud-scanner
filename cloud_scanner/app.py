@@ -1,3 +1,27 @@
+"""
+app.py 
+
+The purpose of this Flask app is to add a simple API to access the results on
+demand.
+
+It offers two main features: uploading JSON files
+to assess resources and fetching evaluation results based on security criteria.
+
+Key Features:
+Upload Endpoint (/upload): POST a JSON file to insert cloud resource data into
+the database. The file should include EC2Instances, S3Buckets, and RDSInstances.
+
+Assessment Endpoint (/api/resources): POST a request to get security risk scores
+for specified resources (ec2, s3, rds), filtering by a minimum risk score if needed.
+
+Quick Start:
+Upload: Send your JSON file with cloud resource data to /upload. Make sure the file
+matches the expected structure.
+
+Fetch Results: Post to /api/resources with the resource type and an optional
+minimum score to see which resources pass or need attention.
+"""
+
 from flask import Flask, request, jsonify
 from rule_runner import s3_rule_check, ec2_instance_check, rds_rule_check
 import json
@@ -24,14 +48,23 @@ def upload_json():
         return jsonify({"error": "No selected file."}), 400
 
     if file:
-        json_data = json.load(file)
+        try:
+            json_data = json.load(file)
+        except ValueError:
+            return (
+                jsonify(
+                    "Your file was not accepted due to a ValueError during load. Please validate your file is valid JSON"
+                ),
+                400,
+            )
+
         ec2_instances, s3_buckets, rds_instances = breakdown_json(json_data)
         db.batch_insert_ec2(data=ec2_instances)
         db.batch_insert_s3(data=s3_buckets)
         db.batch_insert_rds(data=rds_instances)
         return (
             jsonify(
-                f"Data has been loaded. {len(ec2_instances) + len(s3_buckets) + len(rds_instances)} Items Accepted."
+                f"Data has been loaded. {(len(ec2_instances) + len(s3_buckets) + len(rds_instances))} Items Accepted."
             ),
             200,
         )
@@ -39,16 +72,7 @@ def upload_json():
 
 @app.route("/api/resources", methods=["POST"])
 def get_resources():
-    print(request.headers)
-    print(request.cookies)
-    print(request.data)
-    print(request.args)
-    print(request.form)
-    print(request.endpoint)
-    print(request.method)
-    print(request.remote_addr)
     data = request.get_json()
-    print(request)
     resource_type = data.get("type")
     min_score = data.get("min_score", 0)
 
@@ -68,7 +92,7 @@ def get_resources():
             if len(value.get("Violations", [])) >= min_score
         }
     except AttributeError as e:
-        print(f"Error processing data: {e}")
+        return jsonify(f"Error processing data: {e}"), 400
 
     return jsonify(filtered_data)
 

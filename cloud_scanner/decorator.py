@@ -1,3 +1,7 @@
+"""
+Simple logger that grabs entry and exit points.
+"""
+
 import logging
 import functools
 import time

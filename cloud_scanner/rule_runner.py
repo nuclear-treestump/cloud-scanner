@@ -1,3 +1,23 @@
+"""
+rule_runner.py
+
+The purpose of this module is to serve as the runner of the rules.
+
+Each of the *_check() functions work in the same way:
+1. Uses the @with_db_connection() decorator from database_ops to seamlessly
+handle connection management to connect to the DB
+2. The for loop runs each of the SQL queries, using the key of the query as the
+name of the violation
+3. Re-assembles the data into a dictionary of dictionaries, with the ID from the SQLite DB
+as the primary key (given that duplicate entries were found in the original data load, so the 
+name field could not be used for this)
+4. Assign Violation nested key to each primary key with the name of the violation.
+5. Read this dictionary into all_results dict
+6. Repeat for all existing queries
+7. Sort by len() of violation subkey, in descending order
+8. return json_output
+"""
+
 from database_ops import with_db_connection
 import sqlite3
 
@@ -13,6 +33,12 @@ def s3_rule_check(conn):
         Assign 1 point if Public Access is true
         Assign 1 point if Encrypted is false
         Assign 1 point if logging_enabled is false
+
+
+    conn: SQLite Connection Object supplied by decorator
+
+    returns:
+        dict
 
     """
     conn.row_factory = sqlite3.Row
@@ -55,6 +81,12 @@ def ec2_instance_check(conn):
     Rules:
         Assign 1 point if IpPermissions exists with an insecure CIDR range
         Assign 1 point if public IP is present.
+
+
+    conn: SQLite Connection Object supplied by decorator
+
+    returns:
+        dict
 
     """
     conn.row_factory = sqlite3.Row
@@ -99,6 +131,11 @@ def rds_rule_check(conn):
         Assign 1 point if Encrypted is false
         Assign 1 point if Public IP exists
 
+    conn: SQLite Connection Object supplied by decorator
+
+    returns:
+        dict
+
     """
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -131,9 +168,12 @@ def rds_rule_check(conn):
     return json_output
 
 
-def process_results(violation_type, rows):
+def process_results(violation_type: str, rows: dict) -> dict:
     """
     Assign violation nested key + append new violations to ID
+
+    violation_type (str): Text of Violation string
+    rows (dict):  rows from SQL query.
     """
     processed_rows = {}
     for row in rows:
