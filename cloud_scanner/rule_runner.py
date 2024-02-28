@@ -1,6 +1,5 @@
 from database_ops import with_db_connection
 import sqlite3
-import json
 
 
 @with_db_connection()
@@ -44,11 +43,98 @@ def s3_rule_check(conn):
         all_results.items(), key=lambda item: len(item[1]["Violations"]), reverse=True
     )
 
-    json_output = {row_id: json.dumps(data) for row_id, data in sorted_results}
+    json_output = {row_id: data for row_id, data in sorted_results}
+    return json_output
+
+
+@with_db_connection()
+def ec2_instance_check(conn):
+    """
+    Process the 2 EC2 rules and identify most at risk resources by weighted risk score.
+
+    Rules:
+        Assign 1 point if IpPermissions exists with an insecure CIDR range
+        Assign 1 point if public IP is present.
+
+    """
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    queries = {
+        "PublicIPExposure": "SELECT DISTINCT * FROM ec2instances WHERE public_ip IS NOT NULL GROUP BY group_id, group_name",
+        "InsecureCIDRRange": "SELECT DISTINCT * FROM ec2instances WHERE ip_perms IS NOT '[]' GROUP BY group_id, group_name",
+    }
+    all_results = {}
+
+    for violation_type, query in queries.items():
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        processed_rows = process_results(violation_type, rows)
+
+        for row_id, data in processed_rows.items():
+            if row_id in all_results:
+                all_results[row_id]["Violations"].extend(data["Violations"])
+            else:
+                all_results[row_id] = data
+
+    for data in all_results.values():
+        data["Violations"] = list(set(data["Violations"]))
+
+    sorted_results = sorted(
+        all_results.items(), key=lambda item: len(item[1]["Violations"]), reverse=True
+    )
+    json_output = {row_id: data for row_id, data in sorted_results}
+
+    return json_output
+
+
+@with_db_connection()
+def rds_rule_check(conn):
+    """
+    Process the two RDS rules and identify most at risk resources by weighted risk score.
+
+
+
+    Rules:
+        Assign 1 point if Encrypted is false
+        Assign 1 point if Public IP exists
+
+    """
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    queries = {
+        "PublicAccessEnabled": "SELECT DISTINCT * FROM rdsinstances WHERE public_access = 1 GROUP BY db_name",
+        "EncryptionDisabled": "SELECT DISTINCT * FROM rdsinstances WHERE encryption = 0 GROUP BY db_name",
+    }
+    all_results = {}
+
+    for violation_type, query in queries.items():
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        processed_rows = process_results(violation_type, rows)
+
+        for row_id, data in processed_rows.items():
+            if row_id in all_results:
+                all_results[row_id]["Violations"].extend(data["Violations"])
+            else:
+                all_results[row_id] = data
+
+    for data in all_results.values():
+        data["Violations"] = list(set(data["Violations"]))
+
+    sorted_results = sorted(
+        all_results.items(), key=lambda item: len(item[1]["Violations"]), reverse=True
+    )
+
+    json_output = {row_id: data for row_id, data in sorted_results}
     return json_output
 
 
 def process_results(violation_type, rows):
+    """
+    Assign violation nested key + append new violations to ID
+    """
     processed_rows = {}
     for row in rows:
         row_id = row["id"]
@@ -58,6 +144,3 @@ def process_results(violation_type, rows):
         else:
             processed_rows[row_id]["Violations"].append(violation_type)
     return processed_rows
-
-
-s3_rule_check()
