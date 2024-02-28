@@ -25,9 +25,11 @@ minimum score to see which resources pass or need attention.
 from flask import Flask, request, jsonify
 from rule_runner import s3_rule_check, ec2_instance_check, rds_rule_check
 import json
-from . import database_ops as db
+import database_ops as db
 
 app = Flask(__name__)
+
+db.setup_database()
 
 
 def breakdown_json(json_file):
@@ -40,7 +42,14 @@ def breakdown_json(json_file):
 @app.route("/upload", methods=["POST"])
 def upload_json():
     if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
+        return (
+            jsonify(
+                {
+                    "error": "No file part, or wrong Content-Type. Content-Type must be multipart/form-data"
+                }
+            ),
+            400,
+        )
 
     file = request.files["file"]
 
@@ -98,4 +107,4 @@ def get_resources():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0")

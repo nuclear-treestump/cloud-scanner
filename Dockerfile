@@ -8,7 +8,9 @@ COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip 
 RUN pip install -r requirements.txt
 
+ENV FLASK_APP=cloudscanner/app.py
+
 EXPOSE 5000
 
-CMD ["flask", "--app", "/cloudscanner/app.py", "run", "-p", "5000"]
+CMD ["python3", "app.py"]
 
