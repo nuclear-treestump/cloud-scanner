@@ -400,3 +400,14 @@ cloud_scanner/ec2_instances.json
 cloud_scanner/fake_aws_resources_with_ips.json
 cloud_scanner/rds_instances.json
 cloud_scanner/s3_buckets.json
+cloud-scanner/test-env
+/test-env
+ec2_instances.json
+fake_aws_resources_with_ips.json
+rds_instances.json
+s3_buckets.json
+testoutput.csv
+testoutput.json
+.vscode/launch.json
+data.db
+cloud-scanner.zip
