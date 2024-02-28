@@ -1,13 +1,14 @@
 import json
-from .decorator import autolog
-from .database_ops import fetch_entry_by_id
+from decorator import autolog
+from database_ops import fetch_entry_by_id
 
+"""
 
-class RuleEngine:
-    def __init__(self, rules):
-        self.rules = rules
+Plan
+run the 3 check scripts, save json to variable
 
-    def tokenize(self, condition):
-        """
-        Break evaluation condition strings into operators for parsing.
-        """
+reprocess json obj, separating 3s and 2s, outputting len() as "Risk Score"
+
+Create simple REST API to allow zeroing in on what data class one would want.
+
+"""
