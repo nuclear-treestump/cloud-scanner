@@ -411,3 +411,4 @@ testoutput.json
 .vscode/launch.json
 data.db
 cloud-scanner.zip
+UntrackedGarbage/*
